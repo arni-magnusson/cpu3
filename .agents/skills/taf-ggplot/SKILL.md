@@ -32,11 +32,12 @@ Flag anything that disagrees between files instead of silently fixing it. For ex
 
 ## Output pattern
 
-Keep TAF graphics device convention. Build the plot as an object, then print it between `taf.png()` and `dev.off()`:
+Use the TAF function taf.png() as the graphics device and organize the ggplot() and plot() calls between `taf.png()` and `dev.off()`:
 
 ```r
 taf.png("biomass")
-print(p)
+p <- ggplot(...)
+plot(p)
 dev.off()
 ```
 
