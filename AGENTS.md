@@ -24,5 +24,5 @@ workflows in TAF format.
 
 6. When working in Claude chat, the AI agent can only work inside the sandbox
    and cannot modify the actual files. Therefore, changes in the report and
-   utility scripts should be shown in the chat, either the whole files or
-   selected snippets when the changes are small.
+   utility scripts should be shown in the chat, preferably whole files unless
+   the overall change is only one or two lines.
