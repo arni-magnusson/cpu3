@@ -26,3 +26,6 @@ workflows in TAF format.
    and cannot modify the actual files. Therefore, changes in the report and
    utility scripts should be shown in the chat, preferably whole files unless
    the overall change is only one or two lines.
+
+7. The processor order should always be the chronological order: 3740, 10875,
+   1165, 285.
