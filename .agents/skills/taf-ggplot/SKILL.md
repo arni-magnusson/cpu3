@@ -1,5 +1,5 @@
 ---
-name: taf-ggplot2
+name: taf-ggplot
 description: Convert base-graphics plots in TAF workflow report scripts (report.R, report_*.R) to presentation-quality ggplot2 plots, or create new ggplot2 plots in a TAF workflow. Use this skill whenever the user mentions ggplot, ggplot2, converting or restyling plots, presentation-quality figures, or a plot theme in a repository with TAF workflows (data.R, model.R, output.R, report.R), even if they do not say TAF explicitly. Covers which files may be edited, the utilities.R theme pattern, label and ordering conventions, how to verify a change, and the visual style.
 ---
 
