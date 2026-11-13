@@ -21,3 +21,8 @@ workflows in TAF format.
    checking whether the resulting PNG files look good. In the second step, you
    work with the developer on incremental teaks to the format until the
    developer approved the final plot format.
+
+6. When working in Claude chat, the AI agent can only work inside the sandbox
+   and cannot modify the actual files. Therefore, changes in the report and
+   utility scripts should be shown in the chat, either the whole files or
+   selected snippets when the changes are small.
