@@ -28,4 +28,4 @@ workflows in TAF format.
    the overall change is only one or two lines.
 
 7. The processor order should always be the chronological order: 3740, 10875,
-   1165, 285.
+   1165, 285. Newest processor at the top, oldest processor on the bottom.

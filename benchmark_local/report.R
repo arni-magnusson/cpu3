@@ -15,14 +15,17 @@ info <- read.taf("data/info.csv")
 memory.details <- read.taf("data/passmark.csv")
 passmark <- read.taf("output/passmark.csv")
 
-# Machine names for axis labels
-passmark$name <- info$name[match(passmark$machine, info$machine)]
+# Chronological order of machines (info.csv lists oldest first)
+passmark <- passmark[match(info$machine, passmark$machine),]
+
+# Machine labels (same as benchmark_actual)
+cpu <- paste("Intel", sub(" ", "-", info$processor))
+labels <- paste(info$name, cpu, sep="\n")
+passmark$label <- factor(labels, levels=labels)
 
 # Single thread
-single <- passmark[order(passmark$single),]
-single$name <- factor(single$name, levels=single$name)
 taf.png("cpu_benchmark")
-p <- ggplot(single, aes(x=single, y=name)) +
+p <- ggplot(passmark, aes(x=single, y=label)) +
   geom_col(fill="#1F3A5F", width=0.7) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(title="Single-thread benchmark",
@@ -32,10 +35,8 @@ plot(p)
 dev.off()
 
 # Multithread
-multi <- passmark[order(passmark$multi),]
-multi$name <- factor(multi$name, levels=multi$name)
 taf.png("cpu_multicore")
-p <- ggplot(multi, aes(x=multi, y=name)) +
+p <- ggplot(passmark, aes(x=multi, y=label)) +
   geom_col(fill="#1F3A5F", width=0.7) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(title="Multithread benchmark",
@@ -45,10 +46,8 @@ plot(p)
 dev.off()
 
 # Effective cores
-effective <- passmark[order(passmark$effcores),]
-effective$name <- factor(effective$name, levels=effective$name)
 taf.png("effective_cores")
-p <- ggplot(effective, aes(y=name)) +
+p <- ggplot(passmark, aes(y=label)) +
   geom_col(aes(x=physcores, fill="Physical"), width=0.7) +
   geom_col(aes(x=effcores, fill="Effective index"), width=0.7) +
   scale_fill_manual(values=c(Physical="#8FB8DE", "Effective index"="#1F3A5F"),
@@ -62,7 +61,7 @@ dev.off()
 
 # Memory
 memory <- merge(memory.details, info[c("machine", "name", "module", "year")])
-memory <- memory[order(memory$memory),]
+memory <- memory[match(info$machine, memory$machine),]
 memory <- memory[c("machine", "name", "memory", "database", "readcache", "read",
                    "write", "available", "latency", "threaded", "module",
                    "year")]
