@@ -28,7 +28,7 @@ p <- ggplot(single, aes(x=single, y=name)) +
   labs(title="Single-thread benchmark",
        x="Score (PassMark single thread)") +
   themeReport()
-print(p)
+plot(p)
 dev.off()
 
 # Multithread
@@ -41,7 +41,7 @@ p <- ggplot(multi, aes(x=multi, y=name)) +
   labs(title="Multithread benchmark",
        x="Score (PassMark multithread)") +
   themeReport()
-print(p)
+plot(p)
 dev.off()
 
 # Effective cores
@@ -57,7 +57,7 @@ p <- ggplot(effective, aes(y=name)) +
   labs(title="Effective core index = multithread score / single-thread score",
        x="Number of cores") +
   themeReport()
-print(p)
+plot(p)
 dev.off()
 
 # Memory
@@ -75,7 +75,7 @@ p <- ggplot(memory, aes(x=memory, y=label)) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(title="Memory benchmark", x="Score") +
   themeReport()
-print(p)
+plot(p)
 dev.off()
 
 # Memory details
@@ -93,5 +93,5 @@ p <- ggplot(details, aes(x=score, y=label)) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(x="Score") +
   themeReport()
-print(p)
+plot(p)
 dev.off()
