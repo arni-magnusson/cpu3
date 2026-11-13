@@ -1,8 +1,49 @@
-# Plot improvement
-implot <- function(x, xlim=c(0,35), plt=c(0.3,0.9,0.2,0.86), ...)
+# Plot theme for report
+themeReport <- function(base_size=12, legend="topleft", grid="both")
 {
-  par(plt=plt)
-  labels <- paste0(x$Model[-1], " (", format(x$Date[-1], "%Y"), ")")
-  barplot(100*x$Improve[-1], names=labels, horiz=TRUE, las=1, xlim=xlim,
-          xlab="Speed improvement (%)", ...)
+  # Legend inside plot area, in a corner
+  pos <- switch(legend,
+                topleft=c(0.03, 0.97), topright=c(0.97, 0.97),
+                bottomleft=c(0.03, 0.03), bottomright=c(0.97, 0.03))
+  just <- switch(legend,
+                 topleft=c(0, 1), topright=c(1, 1),
+                 bottomleft=c(0, 0), bottomright=c(1, 0))
+
+  # Light gridlines, either direction (or both) can be dropped
+  line <- element_line(colour="grey88")
+  grid.x <- if(grid %in% c("both", "x")) line else element_blank()
+  grid.y <- if(grid %in% c("both", "y")) line else element_blank()
+
+  # Clean theme for presentation plots
+  theme_minimal(base_size=base_size) +
+    theme(plot.title=element_text(face="bold", size=rel(1.3), hjust=0.5,
+                                  margin=margin(b=12)),
+          plot.title.position="plot",
+          panel.grid.major.x=grid.x,
+          panel.grid.major.y=grid.y,
+          panel.grid.minor=element_blank(),
+          axis.title.x=element_text(colour="grey35", margin=margin(t=10)),
+          axis.title.y=element_text(colour="grey35", margin=margin(r=10)),
+          axis.text=element_text(colour="black", size=rel(1.05)),
+          legend.position="inside",
+          legend.position.inside=pos,
+          legend.justification=just,
+          legend.title=element_blank(),
+          legend.background=element_rect(fill="white", colour=NA),
+          legend.text=element_text(size=rel(0.9)),
+          legend.key.size=unit(1, "lines"),
+          plot.margin=margin(15, 20, 12, 15))
+}
+
+# Plot improvement (first row is dropped, it has no previous generation)
+implot <- function(x, title, fill, xlim=c(0,40))
+{
+  x <- x[-1,]
+  labels <- paste0(x$Model, " (", format(x$Date, "%Y"), ")")
+  x$label <- factor(labels, levels=labels)  # oldest at bottom, newest on top
+  ggplot(x, aes(x=100*Improve, y=label)) +
+    geom_col(fill=fill, width=0.7) +
+    scale_x_continuous(limits=xlim, expand=expansion(mult=c(0, 0.05))) +
+    labs(title=title, x="Speed improvement (%)", y=NULL) +
+    themeReport(grid="x")
 }

@@ -6,6 +6,8 @@
 #         companies_macbook.png (report)
 
 library(TAF)
+library(ggplot2)
+source("utilities.R")  # themeReport
 
 mkdir("report")
 
@@ -19,45 +21,56 @@ r7.high <- read.taf("output/r7_high.csv", colClasses=c(Date="Date"))
 
 # Prepare for plotting
 score <- "Score (PassMark single thread)"
-lwd <- 2
+cols <- c(Apple="grey35", Intel="#1F3A5F", AMD="#D98E3F")
+companies$Company <- factor(companies$Company, levels=names(cols))
+companies.fit$Company <- factor(companies.fit$Company, levels=names(cols))
+speed.y <- scale_y_log10(breaks=c(1000, 2000, 3000, 4000, 6000))
 
 # Companies: Apple vs Intel vs AMD
 taf.png("companies_data", width=1200)
-plot(Speed~Date, companies, type="n", log="y",
-     main="Processor performance by company", ylab=score)
-points(Speed~Date, companies, subset=Company=="Apple", pch=19, col=1)
-points(Speed~Date, companies, subset=Company=="Intel", pch=19, col=4)
-points(Speed~Date, companies, subset=Company=="AMD", pch=19, col=2)
-legend("topleft", legend=c("Apple", "Intel", "AMD"), pch=19, col=c(1,4,2),
-       bty="n", inset=0.02, y.intersp=1.25)
+p <- ggplot(companies, aes(x=Date, y=Speed, colour=Company)) +
+  geom_point(size=2) +
+  scale_colour_manual(values=cols) +
+  speed.y +
+  labs(title="Processor performance by company", x=NULL, y=score) +
+  themeReport()
+plot(p)
 dev.off()
 
 # Companies with fitted regression lines
 taf.png("companies_fit", width=1200)
-plot(Speed~Date, companies, type="n", log="y",
-     main="Processor performance by company", ylab=score)
-points(Speed~Date, companies, subset=Company=="Apple", pch=19, col=1)
-points(Speed~Date, companies, subset=Company=="Intel", pch=19, col=4)
-points(Speed~Date, companies, subset=Company=="AMD", pch=19, col=2)
-lines(Speed~Date, companies.fit, subset=Company=="Apple", lwd=lwd, col=1)
-lines(Speed~Date, companies.fit, subset=Company=="Intel", lwd=lwd, col=4)
-lines(Speed~Date, companies.fit, subset=Company=="AMD", lwd=lwd, col=2)
-legend("topleft", legend=c("Apple", "Intel", "AMD"), pch=19, col=c(1,4,2),
-       bty="n", inset=0.02, y.intersp=1.25)
+p <- ggplot(companies, aes(x=Date, y=Speed, colour=Company)) +
+  geom_point(size=2) +
+  geom_line(data=companies.fit, linewidth=0.9) +
+  scale_colour_manual(values=cols) +
+  speed.y +
+  labs(title="Processor performance by company", x=NULL, y=score) +
+  themeReport()
+plot(p)
 dev.off()
 
 # Lag between companies
 taf.png("companies_lag")
 companies.lag$Company <- reorder(companies.lag$Company, companies.lag$Lag)
-barplot(Lag~Company, companies.lag, xlab="", ylab="Lag (yrs)", col=0, border=NA)
-grid(NA, NULL, lty=1)
-barplot(Lag~Company, companies.lag, add=TRUE, col=c(1,4,2))
-title(main="Lag until company reaches the CPU performance of the best company")
+p <- ggplot(companies.lag, aes(x=Company, y=Lag, fill=Company)) +
+  geom_col(width=0.7) +
+  scale_fill_manual(values=cols, guide="none") +
+  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
+  labs(title="Lag until company reaches the CPU performance\nof the best company",
+       x=NULL, y="Lag (yrs)") +
+  themeReport(grid="y")
+plot(p)
 dev.off()
 
 # MacBook Air vs Pro
+apple$Type <- factor(ifelse(grepl("Pro", apple$Model), "Pro", "Air"),
+                     levels=c("Pro", "Air"))
 taf.png("companies_macbook", width=1200)
-plot(Speed~Date, apple, log="y", pch=c(1,19), ylab=score, main="Apple MacBook")
-legend("topleft", legend=c("Pro", "Air"), pch=c(19,1), bty="n", inset=0.02,
-       y.intersp=1.25)
+p <- ggplot(apple, aes(x=Date, y=Speed, shape=Type)) +
+  geom_point(size=2.5, colour=cols[["Apple"]]) +
+  scale_shape_manual(values=c(Pro=19, Air=1)) +
+  scale_y_log10(breaks=c(3500, 4000, 4500, 5000, 6000)) +
+  labs(title="Apple MacBook", x=NULL, y=score) +
+  themeReport()
+plot(p)
 dev.off()
