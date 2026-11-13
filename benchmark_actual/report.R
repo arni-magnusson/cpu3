@@ -25,6 +25,7 @@ catage$job <- factor(catage$job, levels=c("sustained", "short"),
                      labels=c("Sustained", "Short"))
 
 # Barplot
+taf.png("speed")
 p <- ggplot(catage, aes(x=speed, y=label, fill=job)) +
   geom_col(position=position_dodge(width=0.75), width=0.7) +
   scale_fill_manual(values=c(Short="#8FB8DE", Sustained="#1F3A5F"),
@@ -32,8 +33,6 @@ p <- ggplot(catage, aes(x=speed, y=label, fill=job)) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(title="Speed measurements", x="Speed (model iterations / sec)") +
   themeReport()
-
-taf.png("speed")
 print(p)
 dev.off()
 
