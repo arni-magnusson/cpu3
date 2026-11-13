@@ -48,10 +48,11 @@ dev.off()
 # Effective cores
 taf.png("effective_cores")
 p <- ggplot(passmark, aes(y=label)) +
-  geom_col(aes(x=physcores, fill="Physical"), width=0.7) +
+  geom_col(aes(x=physcores, fill="Physical cores"), width=0.7) +
   geom_col(aes(x=effcores, fill="Effective index"), width=0.7) +
-  scale_fill_manual(values=c(Physical="#8FB8DE", "Effective index"="#1F3A5F"),
-                    breaks=c("Physical", "Effective index")) +
+  scale_fill_manual(values=c("Physical cores"="#8FB8DE",
+                             "Effective index"="#1F3A5F"),
+                    breaks=c("Physical cores", "Effective index")) +
   scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
   labs(title="Effective core index = multithread score / single-thread score",
        x="Number of cores") +
@@ -77,20 +78,29 @@ p <- ggplot(memory, aes(x=memory, y=label)) +
 plot(p)
 dev.off()
 
-# Memory details
+# Memory details, relative to best machine (latency inverted, lower is better)
+# Bar labels show the actual values, units are in the legend
+metrics <- c("Read (MB/s)", "Write (MB/s)", "Latency (ns)")
+num <- function(x) formatC(x, format="d", big.mark=",")
 details <- data.frame(label=rep(memory$label, 3),
-                      metric=factor(rep(c("Memory (read)", "Memory (write)",
-                                          "Memory (latency)"),
-                                        each=nrow(memory)),
-                                    levels=c("Memory (read)", "Memory (write)",
-                                             "Memory (latency)")),
-                      score=c(memory$read, memory$write, memory$latency))
-taf.png("memory_details", 1600, 2800)
-p <- ggplot(details, aes(x=score, y=label)) +
-  geom_col(fill="#1F3A5F", width=0.7) +
-  facet_wrap(~metric, ncol=1, scales="free_x") +
-  scale_x_continuous(expand=expansion(mult=c(0, 0.1))) +
-  labs(x="Score") +
-  themeReport()
+                      metric=factor(rep(metrics, each=nrow(memory)),
+                                    levels=metrics),
+                      score=c(100 * memory$read / max(memory$read),
+                              100 * memory$write / max(memory$write),
+                              100 * min(memory$latency) / memory$latency),
+                      value=c(num(memory$read), num(memory$write),
+                              num(memory$latency)))
+dodge <- position_dodge(width=0.8, reverse=TRUE)
+taf.png("memory_details")
+p <- ggplot(details, aes(x=score, y=label, fill=metric)) +
+  geom_col(position=dodge, width=0.8) +
+  geom_text(aes(label=value), position=dodge, hjust=-0.1, size=3.3,
+            colour="grey20") +
+  scale_fill_manual(values=c("#1F3A5F", "#8FB8DE", "#D98E3F")) +
+  scale_x_continuous(breaks=seq(0, 100, 25),
+                     expand=expansion(mult=c(0, 0.12))) +
+  labs(title="Memory details", x="Score relative to best machine (%)") +
+  themeReport() +
+  theme(legend.position="top", legend.justification="center")
 plot(p)
 dev.off()
