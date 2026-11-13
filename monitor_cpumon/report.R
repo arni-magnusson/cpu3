@@ -6,7 +6,8 @@
 # After:  comparison.png, cores.png, desc.csv, each.png, summary.csv (report)
 
 library(TAF)
-source("utilities.R")
+library(ggplot2)
+source("utilities.R")  # longform, themeReport
 
 mkdir("report")
 
@@ -19,50 +20,75 @@ p15gen1 <- readRDS("model/p15gen1.rds")
 p3560 <- readRDS("model/p3560.rds")
 summary <- read.taf("output/summary.csv")
 
+# Machine labels in chronological order (info.csv lists oldest first)
+ids <- c("m4700", "p15gen1", "p3560", "p1gen8")
+labels <- paste(info$name, paste("Intel", sub(" ", "-", info$processor)),
+                sep="\n")[match(ids, info$machine)]
+
 # Prepare plot elements
 machines <- list(m4700=m4700, p15gen1=p15gen1, p3560=p3560, p1gen8=p1gen8)
+states <- c("idle", "single", "main", "full")
+variables <- c(Freq="Frequency (MHz)", Temp="Temperature (\u00b0C)",
+               Fan="Fan speed (RPM)")
+machine.cols <- setNames(c("#1F3A5F", "#D98E3F", "#2A9D8F", "#8E5EA2"), labels)
+state.cols <- c(idle="grey55", single="#1F3A5F", main="#D98E3F", full="#B83A4B")
+x <- longform(machines)
+x$machine <- factor(x$machine, levels=ids, labels=labels)
+x$state <- factor(x$state, levels=states)
+x$variable <- factor(x$variable, levels=names(variables))
+axes <- list(
+  scale_x_continuous(breaks=c(0, 100, 200, 300), limits=c(0, 300)),
+  scale_y_continuous(expand=expansion(mult=c(0, 0.1))),
+  expand_limits(y=0),
+  labs(x="Iteration", y=NULL)
+)
 
 # Plot machine comparison
 taf.png("comparison", 3600, 2400, res=300)
-par(mfrow=c(3,4))
-plot_comparison(machines, "idle", "Freq")
-plot_comparison(machines, "single", "Freq")
-plot_comparison(machines, "main", "Freq")
-plot_comparison(machines, "full", "Freq")
-plot_comparison(machines, "idle", "Temp")
-plot_comparison(machines, "single", "Temp")
-plot_comparison(machines, "main", "Temp")
-plot_comparison(machines, "full", "Temp")
-plot_comparison(machines, "idle", "Fan")
-plot_comparison(machines, "single", "Fan")
-plot_comparison(machines, "main", "Fan")
-plot_comparison(machines, "full", "Fan")
+p <- ggplot(x, aes(x=iteration, y=value, colour=machine)) +
+  geom_point(size=0.8) +
+  facet_grid(variable~state, scales="free_y", switch="y",
+             labeller=labeller(variable=variables, state=tools::toTitleCase)) +
+  scale_colour_manual(values=machine.cols) +
+  guides(colour=guide_legend(nrow=1, override.aes=list(size=3))) +
+  axes +
+  themeReport()
+plot(p)
 dev.off()
 
 # Plot cores
+cores <- do.call(rbind, lapply(ids, function(m)
+  data.frame(machine=m, core=seq_len(nrow(cores[[m]])),
+             state=rep(names(cores[[m]]), each=nrow(cores[[m]])),
+             freq=unlist(cores[[m]], use.names=FALSE))))
+cores$machine <- factor(cores$machine, levels=ids, labels=labels)
+cores$state <- factor(cores$state, levels=states)
 taf.png("cores", 1600, 1600)
-par(mfrow=c(2,2))
-plot_cores(cores$m4700)
-plot_cores(cores$p1gen8)
-plot_cores(cores$p15gen1)
-plot_cores(cores$p3560)
+p <- ggplot(cores, aes(x=core, y=freq, colour=state)) +
+  geom_line(linewidth=0.7) +
+  geom_point(size=1.8) +
+  facet_wrap(~machine, ncol=2, scales="free") +
+  scale_colour_manual(values=state.cols, labels=tools::toTitleCase) +
+  scale_x_continuous(breaks=function(lim) {b <- pretty(lim); b[b == round(b)]}) +
+  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
+  expand_limits(y=0) +
+  labs(x="Core", y="Frequency (MHz)") +
+  themeReport(base_size=11) +
+  theme(strip.text.y.left=element_blank())
+plot(p)
 dev.off()
 
 # Plot each machine
 taf.png("each", 3600, 2400, res=300)
-par(mfrow=c(3,4))
-plot_machine(m4700, "Freq")
-plot_machine(p15gen1, "Freq")
-plot_machine(p3560, "Freq")
-plot_machine(p1gen8, "Freq")
-plot_machine(m4700, "Temp")
-plot_machine(p15gen1, "Temp")
-plot_machine(p3560, "Temp")
-plot_machine(p1gen8, "Temp")
-plot_machine(m4700, "Fan")
-plot_machine(p15gen1, "Fan")
-plot_machine(p3560, "Fan")
-plot_machine(p1gen8, "Fan")
+p <- ggplot(x, aes(x=iteration, y=value, colour=state)) +
+  geom_point(size=0.8) +
+  facet_grid(variable~machine, scales="free_y", switch="y",
+             labeller=labeller(variable=variables)) +
+  scale_colour_manual(values=state.cols, labels=tools::toTitleCase) +
+  guides(colour=guide_legend(nrow=1, override.aes=list(size=3))) +
+  axes +
+  themeReport()
+plot(p)
 dev.off()
 
 # Round and divide values

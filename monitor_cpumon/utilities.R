@@ -6,66 +6,68 @@ means <- function(x)
   c(freq, temp, fan)
 }
 
-plot_comparison <- function(machines, state, variable, main=NULL,
-                            xlab="Iteration", ylab="", pch=1, lwd=1.5,
-                            col=c(6,2,4,3), type="p", ...)
+# Plot theme for report
+themeReport <- function(base_size=12, legend="bottom", grid="both")
 {
-  # Prepare variable and variable1
-  variable <- gsub("[0-9]", "", variable)  # Freq
-  variable1 <- paste0(variable, "1")       # Freq1
+  # Legend below the plot (shared by all panels), or inside in a corner
+  if(legend == "bottom")
+  {
+    pos <- "bottom"
+    just <- "center"
+  }
+  else
+  {
+    pos <- switch(legend,
+                  topleft=c(0.03, 0.97), topright=c(0.97, 0.97),
+                  bottomleft=c(0.03, 0.03), bottomright=c(0.97, 0.03))
+    just <- switch(legend,
+                   topleft=c(0, 1), topright=c(1, 1),
+                   bottomleft=c(0, 0), bottomright=c(1, 0))
+  }
 
-  # Extract data
-  x <- sapply(machines, `[`, state)
-  x <- sapply(x, `[`, variable1)
-  names(x) <- names(machines)
+  # Light gridlines, either direction (or both) can be dropped
+  line <- element_line(colour="grey88")
+  grid.x <- if(grid %in% c("both", "x")) line else element_blank()
+  grid.y <- if(grid %in% c("both", "y")) line else element_blank()
 
-  # Prepare plot elements
-  k <- length(x)
-  col <- rep(col, length=k)
-  xlim <- c(0, max(sapply(x, length)))
-  ylim <- lim(unlist(x))
-  if(is.null(main))
-    main <- paste0(variable, " (", state, ")")
-
-  # Plot
-  plot(NA, xlim=xlim, ylim=ylim, main=main, xlab=xlab, ylab=ylab, ...)
-  for(i in 1:k)
-    points(x[[i]], pch=pch, lwd=lwd, col=col[i], type=type)
-  legend("bottomleft", rev(names(x)), pch=pch, pt.lwd=lwd, col=rev(col),
-         bty="n", inset=0.02, y.intersp=1.25)
+  # Clean theme for presentation plots
+  theme_minimal(base_size=base_size) +
+    theme(plot.title=element_text(face="bold", size=rel(1.3), hjust=0.5,
+                                  margin=margin(b=12)),
+          plot.title.position="plot",
+          panel.grid.major.x=grid.x,
+          panel.grid.major.y=grid.y,
+          panel.grid.minor=element_blank(),
+          panel.spacing=unit(1.2, "lines"),
+          axis.title.x=element_text(colour="grey35", margin=margin(t=10)),
+          axis.title.y=element_text(colour="grey35", margin=margin(r=10)),
+          axis.text=element_text(colour="black", size=rel(0.9)),
+          strip.text=element_text(face="bold", size=rel(1)),
+          strip.text.y.left=element_text(face="plain", colour="grey35",
+                                         angle=90),
+          strip.placement="outside",
+          legend.position=pos,
+          legend.justification=just,
+          legend.title=element_blank(),
+          legend.background=element_rect(fill="white", colour=NA),
+          legend.text=element_text(size=rel(0.9)),
+          legend.key.size=unit(1, "lines"),
+          plot.margin=margin(15, 20, 12, 15))
 }
 
-plot_cores <- function(machine, main=tail(as.character(substitute(machine)), 1),
-                       xlab="Core", ylab="Freq", lwd=1.5, col=c(8,1,4,5), ...)
+# Combine Freq1, Temp1, and Fan1 measurements of all machines and states
+longform <- function(machines)
 {
-  plot(NA, xlim=c(1,nrow(machine)), ylim=lim(unlist(machine)), main=main,
-       xlab=xlab, ylab=ylab, xaxt="n", ...)
-  axis(1, 1:nrow(machine))
-  matlines(machine, lty=1, type="o", pch=16, lwd=lwd, col=col)
-  legend("bottomleft", rev(names(machine)), lwd=lwd, col=rev(col),
-         bty="n", inset=0.02, y.intersp=1.25)
-}
-
-plot_machine <- function(machine, variable,
-                         main=paste(deparse(substitute(machine)), variable),
-                         xlab="Iteration", ylab="", pch=1, lwd=1.5,
-                         col=c(8,1,4,5), type="p", ...)
-{
-  # Prepare variable and variable1
-  variable <- gsub("[0-9]", "", variable)  # Freq
-  variable1 <- paste0(variable, "1")       # Freq1
-
-  # Prepare plot elements
-  k <- length(machine)
-  col <- rep(col, length=k)
-  xlim <- c(0, 300)
-  ylim <- lim(unlist(lapply(machine, `[[`, variable1)))
-
-  plot(NA, xlim=xlim, ylim=ylim, main=main, xlab=xlab, ylab=ylab, ...)
-  for(i in 1:k)
-    points(machine[[i]][[variable1]], pch=pch, lwd=lwd, col=col[i], type=type)
-  legend("bottomleft", rev(names(machine)), pch=pch, pt.lwd=lwd, col=rev(col),
-         bty="n", inset=0.02, y.intersp=1.25)
+  out <- list()
+  for(m in names(machines))
+    for(s in names(machines[[m]]))
+      for(v in c("Freq", "Temp", "Fan"))
+      {
+        y <- machines[[m]][[s]][[paste0(v, "1")]]
+        out[[length(out) + 1]] <- data.frame(machine=m, state=s, variable=v,
+                                             iteration=seq_along(y), value=y)
+      }
+  do.call(rbind, out)
 }
 
 remove_first <- function(x, burn=0, length=300)
