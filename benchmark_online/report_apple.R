@@ -42,7 +42,7 @@ dev.off()
 taf.png("companies_fit", width=1200)
 p <- ggplot(companies, aes(x=Date, y=Speed, colour=Company)) +
   geom_point(size=2) +
-  geom_line(data=companies.fit, linewidth=0.9) +
+  geom_line(data=companies.fit, linewidth=0.9, show.legend=FALSE) +
   scale_colour_manual(values=cols) +
   speed.y +
   labs(title="Processor performance by company", x=NULL, y=score) +
@@ -57,8 +57,9 @@ p <- ggplot(companies.lag, aes(x=Company, y=Lag, fill=Company)) +
   geom_col(width=0.7) +
   scale_fill_manual(values=cols, guide="none") +
   scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  labs(title="Lag until company reaches the CPU performance\nof the best company",
-       x=NULL, y="Lag (yrs)") +
+  labs(
+    title="Lag until company reaches the\nCPU performance of the best company",
+    x=NULL, y="Lag (yrs)") +
   themeReport(grid="y")
 plot(p)
 dev.off()
