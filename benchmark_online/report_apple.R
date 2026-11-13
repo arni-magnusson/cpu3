@@ -22,7 +22,7 @@ r7.high <- read.taf("output/r7_high.csv", colClasses=c(Date="Date"))
 
 # Prepare for plotting
 score <- "Score (PassMark single thread)"
-cols <- c(Apple="grey35", Intel="#1F3A5F", AMD="#D98E3F")
+cols <- c(Apple="#B83A4B", Intel="#1F3A5F", AMD="#D98E3F")
 companies$Company <- factor(companies$Company, levels=names(cols))
 companies.fit$Company <- factor(companies.fit$Company, levels=names(cols))
 speed.y <- scale_y_log10(breaks=c(1000, 2000, 3000, 4000, 6000))
