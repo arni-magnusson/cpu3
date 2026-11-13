@@ -1,7 +1,7 @@
 # Prepare data, write CSV data tables
 #
-# Before: catage.dat, my_laptops.dat, passmark/*.dat (boot/data)
-# After:  catage.csv, passmark.csv (data)
+# Before: catage.dat, info.csv, my_laptops.dat, passmark/*.dat (boot/data)
+# After:  catage.csv, info.csv, passmark.csv (data)
 
 library(TAF)
 source("boot/software/utilities.R")
@@ -9,6 +9,7 @@ source("boot/software/utilities.R")
 mkdir("data")
 
 # Read data
+info <- read.taf("boot/data/info.csv")
 catage <- read.table("boot/data/catage.dat", header=TRUE)
 m4700 <- readPass("boot/data/passmark/data/dell_precision_m4700.dat")
 p1gen8 <- readPass("boot/data/passmark/data/lenovo_p1_gen8.dat")
@@ -47,4 +48,5 @@ passmark <- merge(passmark.online, passmark.local)
 
 # WriRead catage run times
 write.taf(catage, dir="data")
+write.taf(info, dir="data")
 write.taf(passmark, dir="data")
