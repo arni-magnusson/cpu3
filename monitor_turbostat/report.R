@@ -5,7 +5,8 @@
 # After:  comparison.png, desc.csv, each.png, summary.csv (report)
 
 library(TAF)
-source("utilities.R")
+library(ggplot2)
+source("utilities.R")  # longform, themeReport
 
 mkdir("report")
 
@@ -50,38 +51,53 @@ stable <- replace(p3560$single$Watt, 120:300, mean(p3560$single$Watt[120:300]))
 smooth_p3560$single$Watt <- loess(stable~iter, span=0.30)$fitted
 smooth_p3560$idle <- mean(p3560$idle$Watt)
 
+# Prepare for plotting
+ids <- c("m4700", "p15gen1", "p3560", "p1gen8")  # chronological order
+labels <- paste(info$name, paste("Intel", sub(" ", "-", info$processor)),
+                sep="\n")[match(ids, info$machine)]
+states <- c("idle", "single", "main", "full")
+variables <- c(Freq="Frequency (MHz)", Temp="Temperature (\u00b0C)",
+               Watt="Power (W)")
+machine.cols <- setNames(c("#1F3A5F", "#D98E3F", "#2A9D8F", "#8E5EA2"), labels)
+state.cols <- c(idle="grey55", single="#1F3A5F", main="#D98E3F", full="#B83A4B")
+x <- longform(machines)
+x$machine <- factor(x$machine, levels=ids, labels=labels)
+x$state <- factor(x$state, levels=states)
+x$variable <- factor(x$variable, levels=names(variables))
+axes <- list(
+  scale_x_continuous(breaks=c(0, 100, 200, 300), limits=c(0, 300)),
+  scale_y_continuous(expand=expansion(mult=c(0, 0.1))),
+  expand_limits(y=0),
+  labs(x="Iteration", y=NULL)
+)
+
 # Plot each machine
 taf.png("each", 3600, 2400, res=300)
-par(mfrow=c(3,4))
-plot_machine(m4700, "Freq")
-plot_machine(p15gen1, "Freq")
-plot_machine(p3560, "Freq")
-plot_machine(p1gen8, "Freq")
-plot_machine(m4700, "Temp")
-plot_machine(p15gen1, "Temp")
-plot_machine(p3560, "Temp")
-plot_machine(p1gen8, "Temp")
-plot_machine(m4700, "Watt")
-plot_machine(p15gen1, "Watt")
-plot_machine(p3560, "Watt")
-plot_machine(p1gen8, "Watt")
+p <- ggplot(x, aes(x=iteration, y=value, colour=state)) +
+  geom_point(size=0.8) +
+  facet_grid(variable~machine, scales="free_y", switch="y",
+             labeller=labeller(variable=variables)) +
+  scale_colour_manual(values=state.cols, labels=tools::toTitleCase) +
+  guides(colour=guide_legend(nrow=1, override.aes=list(size=3))) +
+  axes +
+  themeReport()
+plot(p)
 dev.off()
 
-# Plot machine comparison
+# Plot machine comparison (each panel has its own y axis)
+panels <- expand.grid(state=states, variable=names(variables))
+x$panel <- factor(paste0(variables[as.character(x$variable)], ", ", x$state),
+                  levels=paste0(variables[as.character(panels$variable)], ", ",
+                                panels$state))
 taf.png("comparison", 3600, 2400, res=300)
-par(mfrow=c(3,4))
-plot_comparison(machines, "idle", "Freq")
-plot_comparison(machines, "single", "Freq")
-plot_comparison(machines, "main", "Freq")
-plot_comparison(machines, "full", "Freq")
-plot_comparison(machines, "idle", "Temp")
-plot_comparison(machines, "single", "Temp")
-plot_comparison(machines, "main", "Temp")
-plot_comparison(machines, "full", "Temp")
-plot_comparison(machines, "idle", "Watt")
-plot_comparison(machines, "single", "Watt")
-plot_comparison(machines, "main", "Watt")
-plot_comparison(machines, "full", "Watt")
+p <- ggplot(x, aes(x=iteration, y=value, colour=machine)) +
+  geom_point(size=0.8) +
+  facet_wrap(~panel, ncol=4, scales="free_y") +
+  scale_colour_manual(values=machine.cols) +
+  guides(colour=guide_legend(nrow=1, override.aes=list(size=3))) +
+  axes +
+  themeReport()
+plot(p)
 dev.off()
 
 # Round and divide values
