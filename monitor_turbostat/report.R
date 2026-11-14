@@ -84,15 +84,12 @@ p <- ggplot(x, aes(x=iteration, y=value, colour=state)) +
 plot(p)
 dev.off()
 
-# Plot machine comparison (each panel has its own y axis)
-panels <- expand.grid(state=states, variable=names(variables))
-x$panel <- factor(paste0(variables[as.character(x$variable)], ", ", x$state),
-                  levels=paste0(variables[as.character(panels$variable)], ", ",
-                                panels$state))
+# Plot machine comparison
 taf.png("comparison", 3600, 2400, res=300)
 p <- ggplot(x, aes(x=iteration, y=value, colour=machine)) +
   geom_point(size=0.8) +
-  facet_wrap(~panel, ncol=4, scales="free_y") +
+  facet_grid(variable~state, scales="free_y", switch="y",
+             labeller=labeller(variable=variables, state=tools::toTitleCase)) +
   scale_colour_manual(values=machine.cols) +
   guides(colour=guide_legend(nrow=1, override.aes=list(size=3))) +
   axes +
