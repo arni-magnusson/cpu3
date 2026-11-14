@@ -20,6 +20,7 @@ specs <- read.taf("output/specs.csv", colClasses=c(Date="Date"))
 specs$Form <- factor(specs$Form,
                      levels=c("Workstation", "Intermediate", "Ultraportable"))
 specs$Percentage <- specs$RAM / (1000*specs$Storage)
+ylim <- c(0, 1.15 * max(specs$Percentage))  # shared by both memory plots
 
 # Plot laptop variables
 taf.png("laptop_display")
@@ -117,8 +118,7 @@ taf.png("storage_memory_prop")
 p <- ggplot(specs, aes(x=Date, y=Percentage)) +
   formPoints() +
   dateAxis() +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  expand_limits(y=0) +
+  scale_y_continuous(limits=ylim, expand=expansion(0)) +
   labs(title="Memory tends to be around 2% of storage", x=NULL,
        y="Memory / Storage") +
   themeReport()
@@ -127,22 +127,20 @@ dev.off()
 
 taf.png("storage_memory_text")
 n <- nrow(specs)
+gap <- 0.0012  # distance between datapoint and label
 notes <- data.frame(
-  Date=c(specs$Date[1]+130, specs$Date[1]+120, specs$Date[2], specs$Date[2],
-         specs$Date[n]-80, specs$Date[n]-30),
-  Percentage=c(specs$Percentage[1]+0.004, specs$Percentage[1]-0.004,
-               specs$Percentage[2]+0.004, specs$Percentage[2]-0.004,
-               specs$Percentage[n]+0.004, specs$Percentage[n]-0.004),
+  Date=specs$Date[c(1, 1, 2, 2, n, n)],
+  Percentage=specs$Percentage[c(1, 1, 2, 2, n, n)] + c(1, -1, 1, -1, 1, -1)*gap,
+  vjust=c(0, 1, 0, 1, 0, 1),
   label=c("512 MB\nRAM", "40 GB\nHDD", "4 GB\nRAM", "100 GB\nHDD",
           "64 GB\nRAM", "2 TB\nSSD"))
 p <- ggplot(specs, aes(x=Date, y=Percentage)) +
-  geom_hline(yintercept=0.02, linetype=3, colour="grey35") +
+  geom_hline(yintercept=0.02, linetype=2, linewidth=0.8, colour="orangered") +
   formPoints() +
-  geom_text(data=notes, aes(label=label), size=3.3, colour="grey45",
-            lineheight=0.9) +
+  geom_text(data=notes, aes(label=label, vjust=vjust), size=3.3,
+            colour="grey45", lineheight=0.9) +
   dateAxis() +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  expand_limits(y=0) +
+  scale_y_continuous(limits=ylim, expand=expansion(0)) +
   labs(title="Memory tends to be around 2% of storage", x=NULL,
        y="Memory / Storage") +
   themeReport()
@@ -154,15 +152,16 @@ fm <- lm(W~Height, specs)
 p1gen8 <- specs[specs$Laptop == "Lenovo-P1-Gen8",]
 t61 <- specs[specs$Laptop == "Lenovo-ThinkPad-T61",]
 notes <- data.frame(Height=c(p1gen8$Height, t61$Height),
-                    W=c(p1gen8$W+6, t61$W-6),
+                    W=c(p1gen8$W+3, t61$W-3),
+                    vjust=c(0, 1),
                     label=c("new\npremium\naluminium",
                             "old\nworkstation\nplastic"))
 p <- ggplot(specs, aes(x=Height, y=W)) +
   geom_abline(intercept=coef(fm)[[1]], slope=coef(fm)[[2]], colour="#1F3A5F",
               linewidth=0.7) +
   formPoints() +
-  geom_text(data=notes, aes(label=label), size=3.3, colour="grey45",
-            lineheight=0.9) +
+  geom_text(data=notes, aes(label=label, vjust=vjust), size=3.3,
+            colour="grey45", lineheight=1.1) +
   labs(title="Processor power and laptop thickness", x="Thickness (cm)",
        y="Thermal design power (W)") +
   themeReport()
