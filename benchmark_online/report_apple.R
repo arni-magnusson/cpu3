@@ -26,6 +26,7 @@ cols <- c(Apple="#B83A4B", Intel="#1F3A5F", AMD="#D98E3F")
 companies$Company <- factor(companies$Company, levels=names(cols))
 companies.fit$Company <- factor(companies.fit$Company, levels=names(cols))
 speed.y <- scale_y_log10(breaks=c(1000, 2000, 3000, 4000, 6000))
+legend.nudge <- theme(legend.position.inside=c(0.085, 0.93))  # clear gridlines
 
 # Companies: Apple vs Intel vs AMD
 taf.png("companies_data", width=1200)
@@ -34,7 +35,8 @@ p <- ggplot(companies, aes(x=Date, y=Speed, colour=Company)) +
   scale_colour_manual(values=cols) +
   speed.y +
   labs(title="Processor performance by company", x=NULL, y=score) +
-  themeReport()
+  themeReport() +
+  legend.nudge
 plot(p)
 dev.off()
 
@@ -46,7 +48,8 @@ p <- ggplot(companies, aes(x=Date, y=Speed, colour=Company)) +
   scale_colour_manual(values=cols) +
   speed.y +
   labs(title="Processor performance by company", x=NULL, y=score) +
-  themeReport()
+  themeReport() +
+  legend.nudge
 plot(p)
 dev.off()
 
@@ -71,8 +74,10 @@ taf.png("companies_macbook", width=1200)
 p <- ggplot(apple, aes(x=Date, y=Speed, shape=Type)) +
   geom_point(size=2.5, colour=cols[["Apple"]]) +
   scale_shape_manual(values=c(Pro=19, Air=1)) +
-  scale_y_log10(breaks=c(3500, 4000, 4500, 5000, 6000)) +
-  labs(title="Apple MacBook", x=NULL, y=score) +
+  scale_x_date(limits=as.Date(c("2020-01-01", "2026-08-01"))) +
+  scale_y_log10(breaks=c(3500, 4000, 4500, 5000, 5500, 6000),
+                limits=c(3500, 6000)) +
+  labs(title="MacBook", x=NULL, y=score) +
   themeReport()
 plot(p)
 dev.off()

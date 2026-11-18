@@ -66,7 +66,7 @@ memory <- memory[match(info$machine, memory$machine),]
 memory <- memory[c("machine", "name", "memory", "database", "readcache", "read",
                    "write", "available", "latency", "threaded", "module",
                    "year")]
-labels <- paste0(memory$name, "\n(", memory$module, ")\n", memory$year)
+labels <- paste0(memory$name, "\n", memory$module, " (", memory$year, ")")
 memory$label <- factor(labels, levels=labels)
 
 taf.png("memory_benchmark")
