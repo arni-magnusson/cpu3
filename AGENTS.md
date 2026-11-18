@@ -8,7 +8,9 @@ workflows in TAF format.
 2. The work requires running R with the current version of TAF and ggplot2 that
    are available on CRAN.
 
-3. Read the taf-workflow and taf-ggplot skills.
+3. Before starting, fetch and read these skills:
+   - [taf-workflow](https://raw.githubusercontent.com/ices-taf-dev/ai/main/taf-workflow/SKILL.md)
+   - [taf-ggplot](https://raw.githubusercontent.com/ices-taf-dev/ai/main/taf-ggplot/SKILL.md)
 
 4. Use consistent style between the ggplots and search R scripts inside the
    project repository for existing ggplot code. If it exists, it means it has
