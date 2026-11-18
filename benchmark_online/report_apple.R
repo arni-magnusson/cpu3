@@ -78,6 +78,7 @@ p <- ggplot(apple, aes(x=Date, y=Speed, shape=Type)) +
   scale_y_log10(breaks=c(3500, 4000, 4500, 5000, 5500, 6000),
                 limits=c(3500, 6000)) +
   labs(title="MacBook", x=NULL, y=score) +
-  themeReport()
+  themeReport() +
+  legend.nudge
 plot(p)
 dev.off()

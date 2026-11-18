@@ -56,17 +56,27 @@ ids <- c("m4700", "p15gen1", "p3560", "p1gen8")  # chronological order
 labels <- paste(info$name, paste("Intel", sub(" ", "-", info$processor)),
                 sep="\n")[match(ids, info$machine)]
 states <- c("idle", "single", "main", "full")
-variables <- c(Freq="Frequency (MHz)", Temp="Temperature (\u00b0C)",
+variables <- c(Freq="Frequency (GHz)", Temp="Temperature (\u00b0C)",
                Watt="Power (W)")
 machine.cols <- setNames(c("#1F3A5F", "#D98E3F", "#2A9D8F", "#8E5EA2"), labels)
 state.cols <- c(idle="grey55", single="#1F3A5F", main="#D98E3F", full="#B83A4B")
 x <- longform(machines)
+x$value[x$variable == "Freq"] <- x$value[x$variable == "Freq"] / 1000  # GHz
 x$machine <- factor(x$machine, levels=ids, labels=labels)
 x$state <- factor(x$state, levels=states)
 x$variable <- factor(x$variable, levels=names(variables))
+# Temperature ticks every 25 degrees, other variables keep the default ticks
+temp.top <- 1.1 * max(x$value[x$variable == "Temp"])  # incl. 10% margin
+ybreaks <- function(lim)
+{
+  if(isTRUE(all.equal(lim[2], temp.top)))
+    seq(0, 100, 25)
+  else
+    scales::extended_breaks()(lim)
+}
 axes <- list(
   scale_x_continuous(breaks=c(0, 100, 200, 300), limits=c(0, 300)),
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))),
+  scale_y_continuous(breaks=ybreaks, expand=expansion(mult=c(0, 0.1))),
   expand_limits(y=0),
   labs(x="Iteration", y=NULL)
 )
